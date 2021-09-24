@@ -46,6 +46,16 @@ points.append(np.matrix([1, -1, -1]))
 points.append(np.matrix([1, 1, -1]))
 points.append(np.matrix([-1, 1, -1]))
 
+#Storing Things
+projected_points = [
+	[n, n] for n in range(len(points))
+]
+
+
+#connecting verts...or should i say...points....
+def con_lin_p(i,j,projected_points):
+	pygame.draw.line(screen, BLACK, (projected_points[i][0], projected_points[i][1]), (projected_points[j][0], projected_points[j][1]))
+
 #Im just Here to create the Window :discord_sob_emojie_please_imagine_here:
 pygame.display.set_caption("Bye World")
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -71,6 +81,9 @@ while True:
 	pygame.display.update()
 	screen.fill(WHITE)
 
+	X_angle -= 0.001
+	Y_angle += 0.001
+
 	#ROTATION GOES BRRRRR
 	# Z
 	rotation_z = np.matrix([
@@ -92,6 +105,8 @@ while True:
 	])
 
 	#Heres where the fun begins ;)
+	#oldskool counter boys
+	counter = 0 # i is kinda lame
 	for point in points:
 		Rotated2D = np.dot(rotation_z, point.reshape((3, 1)))
 		Rotated2D = np.dot(rotation_y, Rotated2D)
@@ -99,4 +114,10 @@ while True:
 		Projected2D = np.dot(Projection_Matrix, Rotated2D)
 		proj_X = int(Projected2D[0][0] * Scale) + WIDTH / 2
 		proj_Y = int(Projected2D[1][0] * Scale) + HEIGHT / 2
+		projected_points[counter] = [proj_X,proj_Y]
 		pygame.draw.circle(screen, RED, (proj_X,proj_Y), 5)
+		for p in range(4):
+			con_lin_p(p, (p+1) % 4, projected_points)
+			con_lin_p(p+4, ((p+1) % 4) + 4, projected_points)
+			con_lin_p(p, (p+4), projected_points)
+		counter +=1
