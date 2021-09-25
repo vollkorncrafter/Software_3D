@@ -4,10 +4,11 @@ import numpy as np
 import objekt_loader
 from functools import cache
 import random
+from numba import jit
+import pygame.gfxdraw
 
 
-#Clock
-#clock = pygame.time.Clock()
+clock = pygame.time.Clock()
 #SCREEN SIZEE
 WIDTH = 1376
 HEIGHT = 720
@@ -23,7 +24,7 @@ Scale = 100
 #ANGELSSSS
 Z_angle = 0
 Y_angle = 0
-X_angle = 90
+X_angle = 0
 
 #Projection_Matrix
 Projection_Matrix = np.matrix([
@@ -48,35 +49,56 @@ projected_points = [
 #connecting verts...or should i say...points....
 def con_lin_p(i,j,projected_points):
 	pygame.draw.line(screen, BLACK, (projected_points[i][0], projected_points[i][1]), (projected_points[j][0], projected_points[j][1]))
+#our math
+def Get2D_2(Rotated2D):
+	Rotated2D = np.dot(rotation_y, Rotated2D)
+	Rotated2D = np.dot(rotation_x, Rotated2D)
+	Projected2D = np.dot(Projection_Matrix, Rotated2D)
+	return Projected2D
+
+def Get2D(point):
+	shaped = point.reshape((3,1)) #+ np.matrix([cam_Y,cam_Z,cam_Y]).reshape((3,1))
+	Rotated2D = np.dot(rotation_z, shaped)
+
+	return Get2D_2(Rotated2D)
+
+
+
+
 
 #Im just Here to create the Window :discord_sob_emojie_please_imagine_here:
 pygame.display.set_caption("Bye World")
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 screen.fill(BLACK)
-
+cam_X = 0
+cam_Y = 0
+cam_Z = 0
+texture=pygame.image.load("block.png").convert()
 #"IM a MAIN LOOP IM THE God OF ALL CO.." Bro I made you...cringe
 while True:
-	#clock.tick(60)
+	screen.fill(BLACK)
+	clock.tick(60)
 	for event in pygame.event.get():
 		if event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_LEFT:
-				Y_angle -= 0.1
+				cam_Y -= 0.1
 			if event.key == pygame.K_RIGHT:
-				Y_angle += 0.1
+				cam_Y += 0.1
 			if event.key == pygame.K_DOWN:
-				X_angle -= 0.1
+				cam_Z -= 0.1
 			if event.key == pygame.K_UP:
-				X_angle += 0.1
+				cam_Z += 0.1
 		if event.type == pygame.QUIT:
 			pygame.quit()
 			sys.exit()
 
 
-	pygame.display.update()
-	screen.fill(BLACK)
 
-	X_angle -= 0.01
-	Y_angle += 0.01
+
+
+	X_angle -= 0.1
+	Y_angle += 0.1
+	Z_angle += 0.1
 
 	#ROTATION GOES BRRRRR
 	# Z
@@ -101,30 +123,28 @@ while True:
 	#Heres where the fun begins ;)
 	#oldskool counter boys
 	counter = 0 # i is kinda lame
+	xl = []
+	yl = []
 	for point in points:
-		shaped = point.reshape((3,1))
-		Rotated2D = np.dot(rotation_z, shaped)
-		Rotated2D = np.dot(rotation_y, Rotated2D)
-		Rotated2D = np.dot(rotation_x, Rotated2D)
-		Projected2D = np.dot(Projection_Matrix, Rotated2D)
+		Projected2D = Get2D(point)
 		proj_X = int(Projected2D[0][0] * Scale) + WIDTH / 2
 		proj_Y = int(Projected2D[1][0] * Scale) + HEIGHT / 2
 		projected_points[counter] = [proj_X,proj_Y]
-		R = int(abs(shaped[0]*15)) + 10
-		G = int(abs(shaped[1]*15)) + 20
-		B = int(abs(shaped[2]*15)) + 50
-		#pygame.draw.circle(screen, (R,G,B), (proj_X,proj_Y), 1)
-		for face in range(len(faces)):
-			c_face = faces[face]
-			fx = int(c_face[0,0]) - 1
-			fy = int(c_face[0,1]) - 1
-			fz = int(c_face[0,2]) - 1
-			try:
-				pygame.draw.polygon(screen, (57, 156, 223),points=[projected_points[fx], projected_points[fy], projected_points[fz]])
-			except:
-				pass
+		xl.append(int(proj_X))
+		yl.append(int(proj_Y))
+	for face in range(len(faces)):
+		c_face = faces[face]
+		fx = int(c_face[0,0]) - 1
+		fy = int(c_face[0,1]) - 1
+		fz = int(c_face[0,2]) - 1
+
+		pygame.gfxdraw.polygon(screen,[(xl[fx],yl[fx]), (xl[fy],yl[fy]), (xl[fz],yl[fz])],RED)
+
+
+
 
 		counter +=1
+	pygame.display.update()
 
 
 main()
