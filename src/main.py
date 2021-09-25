@@ -25,14 +25,6 @@ Z_angle = 0
 Y_angle = 0
 X_angle = 90
 
-#MATRICESSS
-#110010010001000010000100
-#010000100001000001000001
-#100010001000001000001000
-#101010010101010101010000
-#111010010110101001011010
-#...not that matrix idiot....
-
 #Projection_Matrix
 Projection_Matrix = np.matrix([
 	[1, 0, 0],
@@ -42,15 +34,6 @@ Projection_Matrix = np.matrix([
 #Vertexes...or....vertecies?
 points = []
 
-#DEFAULT CUBEEEEEE :) #Delte me please
-#points.append(np.matrix([-1, -1, 1]))
-#points.append(np.matrix([1, -1, 1]))
-#points.append(np.matrix([1,  1, 1]))
-#points.append(np.matrix([-1, 1, 1]))
-#points.append(np.matrix([-1, -1, -1]))
-#points.append(np.matrix([1, -1, -1]))
-#points.append(np.matrix([1, 1, -1]))
-#points.append(np.matrix([-1, 1, -1]))
 points = objekt_loader.OBJ()
 faces = objekt_loader.FACES()
 
