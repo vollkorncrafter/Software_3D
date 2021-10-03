@@ -53,6 +53,9 @@ def FACES():
             Xf = float(c[1])
             Yf = float(c[2])
             Zf = float(c[3])
+            Xf = int(Xf)
+            Yf = int(Yf)
+            Zf = int(Zf)
             faces.append(np.matrix([Xf, Yf, Zf]))
     return faces
 
