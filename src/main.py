@@ -14,14 +14,14 @@ num = 0
 
 clock = pygame.time.Clock()
 #SCREEN SIZEE
-WIDTH = 1900
-HEIGHT = 1000
+WIDTH = 500
+HEIGHT = 500
 
 #COLORS BABYYY
 WHITE = (255, 150, 200,60)
 RED = (270, 255, 255)
 BLACK = (0, 0, 0)
-W = (200,200,200)
+W = (0,0,0)
 
 #S- S- .. i dont know if i can say it... S- S- Sc.. Scale...
 Scale = 100
@@ -45,7 +45,37 @@ points = objekt_loader.OBJ()
 faces = objekt_loader.FACES()
 
 
+def light_multiply(v1,v2):
+	C = v1 * v2
+	if C > 255:
+		return 255
+	else:
+		return C
+
+
+def get_change(current, previous):
+    if current == previous:
+        return 100.0
+    try:
+        return (abs(current - previous) / previous) * 100.0
+    except ZeroDivisionError:
+        return 0
+
 #print(points)
+def get_Light(Normals,face):
+	n_vec = Normals[face]
+	n_vec = n_vec[0]
+	n_vec = n_vec.tolist()
+	v_1 = n_vec[0]
+	v_2 = n_vec[1]
+	v_3 = n_vec[2]
+	v_1 = get_change(v_1,1)
+	v_2 = get_change(v_2,1)
+	v_3 = get_change(v_3,1)
+	Q = (v_1 + v_2 + v_3) / 3
+	L = Q / 100
+	return L
+
 
 #Storing Things
 projected_points = [
@@ -76,14 +106,6 @@ def Get_Z(faces,PointsInSpace):
 		z = (z_1 + z_2 + z_3) / 3
 		Z.append(z)
 	return Z
-
-
-
-	#z = 1/(10 - Rotated2D[2][0])
-
-	#return z
-
-
 
 #our math
 def Get_Projected2D(Rotated2D):
@@ -199,27 +221,31 @@ while True:
 		xl.append(proj_X)
 		yl.append(proj_Y)
 		PointsInSpace.append(Rotated2D)
-	Z = Get_Z(faces, PointsInSpace)	
+	Z = Get_Z(faces, PointsInSpace)
 	Normals = n.Get_Normal(points,faces)
 	Face_Col = Sort(Z,Face_Col)
 	faces = Sort(Z,faces)
 	Normals = Sort(Z,Normals)
-	print(Normals)
 	for face in range(len(faces)):
 		c_face = faces[face]
 		fx = int(c_face[0,0]) - 1
 		fy = int(c_face[0,1]) - 1
 		fz = int(c_face[0,2]) - 1
-	
+		L = get_Light(Normals,face)
+		R = 255
+		G = 255
+		B = 51
+		R = light_multiply(R,L)
+		G = light_multiply(G,L)
+		B = light_multiply(B,L)
 
-		#face = int(face/10) + 50
-		pygame.gfxdraw.filled_polygon(screen,[(xl[fx],yl[fx]), (xl[fy],yl[fy]), (xl[fz],yl[fz])],Face_Col[face])
-		pygame.gfxdraw.aapolygon(screen,[(xl[fx],yl[fx]), (xl[fy],yl[fy]), (xl[fz],yl[fz])],Face_Col[face])
+		pygame.gfxdraw.filled_polygon(screen,[(xl[fx],yl[fx]), (xl[fy],yl[fy]), (xl[fz],yl[fz])],(R,G,B))
+		pygame.gfxdraw.aapolygon(screen,[(xl[fx],yl[fx]), (xl[fy],yl[fy]), (xl[fz],yl[fz])],(0,0,0))
 
 		counter +=1
 	pygame.display.update()
 	fps = clock.get_fps()
-	#print(fps)
+	print(fps)
 	#num +=1
 	#pygame.image.save_extended(screen, "img/"+str(num)+".png")
 
