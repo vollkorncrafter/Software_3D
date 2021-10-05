@@ -9,8 +9,38 @@ from numba import jit
 import pygame.gfxdraw
 import time
 import normals as n
-num = 0
+from tkinter import *
 
+
+
+def unit_vector(vector):
+    return vector / np.linalg.norm(vector)
+
+def angle_between(v1, v2):
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+
+#Tkinter Stuff
+
+def show_values():
+    print (w1.get(), w2.get())
+
+start = -200
+to = 200
+light_menu = Tk()
+w1 = Scale(light_menu, from_=start, to_=to, orient=HORIZONTAL)
+w1.pack()
+w2 = Scale(light_menu, from_=start, to_=to, orient=HORIZONTAL)
+w2.pack()
+w3 = Scale(light_menu, from_=start, to_=to, orient=HORIZONTAL)
+w3.pack()
+w1.set(18)
+w2.set(94)
+w3.set(75)
+
+num = 0
 
 clock = pygame.time.Clock()
 #SCREEN SIZEE
@@ -27,9 +57,9 @@ W = (0,0,0)
 Scale = 100
 
 #ANGELSSSS
-Z_angle = 25
-Y_angle = 25
-X_angle = 25
+Z_angle = 0
+Y_angle = 0
+X_angle = 0
 
 
 #Projection_Matrix
@@ -43,6 +73,7 @@ points = []
 
 points = objekt_loader.OBJ()
 faces = objekt_loader.FACES()
+Normals = n.Get_Normal(points,faces)
 
 
 def light_multiply(v1,v2):
@@ -52,30 +83,32 @@ def light_multiply(v1,v2):
 	else:
 		return C
 
-
 def get_change(current, previous):
-    if current == previous:
-        return 100.0
-    try:
-        return (abs(current - previous) / previous) * 100.0
-    except ZeroDivisionError:
-        return 0
+	previous = previous
+	if current == previous:
+		return 100.0
+	try:
+		return (abs(current - previous) / previous) * 100.0
+	except ZeroDivisionError:
+		return 0
 
 #print(points)
 def get_Light(Normals,face):
+	light_menu.update()
 	n_vec = Normals[face]
 	n_vec = n_vec[0]
 	n_vec = n_vec.tolist()
 	v_1 = n_vec[0]
 	v_2 = n_vec[1]
 	v_3 = n_vec[2]
-	v_1 = get_change(v_1,1)
-	v_2 = get_change(v_2,1)
-	v_3 = get_change(v_3,1)
-	Q = (v_1 + v_2 + v_3) / 3
-	L = Q / 100
+	#v = [w1.get()/100,w2.get()/100,w3.get()/100]
+	v = [w1.get()/100,w2.get()/100,w3.get()/100]
+	light = v
+	light = v/np.linalg.norm(v)
+	angle = angle_between(light,n_vec)
+	L = angle
+	L = L / 4
 	return L
-
 
 #Storing Things
 projected_points = [
@@ -89,6 +122,13 @@ def Sort(l1,l2):
 	tuples = zip(*sorted_pairs)
 	l1, l2 = [ list(tuple) for tuple in  tuples]
 	return l2
+
+def color_adding(R,G,B,R1,G1,B1):
+	R = (R+R1)/2
+	G = (B+B1)/2
+	B = (G+G1)/2
+	return R,G,B
+
 
 def Get_Z(faces,PointsInSpace):
 	Z = []
@@ -153,10 +193,6 @@ for i in range(len(faces)):
 	Face_Col.append(color)
 
 
-
-
-
-
 #"IM a MAIN LOOP IM THE God OF ALL CO.." Bro I made you...cringe
 while True:
 	screen.fill(W)
@@ -164,9 +200,9 @@ while True:
 	for event in pygame.event.get():
 		if event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_LEFT:
-				cam_Z += 0.1
+				Test_L += 1
 			if event.key == pygame.K_RIGHT:
-				cam_X += 0.1
+				Test_L -= 1
 			if event.key == pygame.K_DOWN:
 				cam_Y += 0.1
 			if event.key == pygame.K_UP:
@@ -175,13 +211,13 @@ while True:
 			pygame.quit()
 			sys.exit()
 
-	#X_angle += 0.01
-	#Y_angle += 0.01
-	#Z_angle += 0.01
-	Z_angle, X_angle = pygame.mouse.get_pos()
-	X_angle = X_angle / 50
+	X_angle += 0.01
+	Y_angle += 0.01
+	Z_angle += 0.01
+	#Z_angle, X_angle = pygame.mouse.get_pos()
+	#X_angle = X_angle / 50
 
-	Z_angle = Z_angle / 50
+	#Z_angle = Z_angle / 50
 
 	Z = []
 
@@ -222,7 +258,6 @@ while True:
 		yl.append(proj_Y)
 		PointsInSpace.append(Rotated2D)
 	Z = Get_Z(faces, PointsInSpace)
-	Normals = n.Get_Normal(points,faces)
 	Face_Col = Sort(Z,Face_Col)
 	faces = Sort(Z,faces)
 	Normals = Sort(Z,Normals)
@@ -232,20 +267,19 @@ while True:
 		fy = int(c_face[0,1]) - 1
 		fz = int(c_face[0,2]) - 1
 		L = get_Light(Normals,face)
-		R = 255
-		G = 255
-		B = 51
+		R, G, B = 200,200,200
 		R = light_multiply(R,L)
 		G = light_multiply(G,L)
 		B = light_multiply(B,L)
-
+		#R, G, B = color_adding(R,G,B,200,200,200)
 		pygame.gfxdraw.filled_polygon(screen,[(xl[fx],yl[fx]), (xl[fy],yl[fy]), (xl[fz],yl[fz])],(R,G,B))
-		pygame.gfxdraw.aapolygon(screen,[(xl[fx],yl[fx]), (xl[fy],yl[fy]), (xl[fz],yl[fz])],(0,0,0))
+		pygame.gfxdraw.aapolygon(screen,[(xl[fx],yl[fx]), (xl[fy],yl[fy]), (xl[fz],yl[fz])],(R,G,B))
 
 		counter +=1
 	pygame.display.update()
 	fps = clock.get_fps()
 	print(fps)
+	light_menu.update()
 	#num +=1
 	#pygame.image.save_extended(screen, "img/"+str(num)+".png")
 

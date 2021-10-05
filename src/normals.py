@@ -5,14 +5,12 @@ def normalize_v3(arr):
     lens = numpy.sqrt( arr[:,0]**2 + arr[:,1]**2 + arr[:,2]**2 )
     arr[:,0] /= lens
     arr[:,1] /= lens
-    arr[:,2] /= lens                
+    arr[:,2] /= lens
     return arr
 
 
 def Get_Normal(vertices,faces):
     N = []
-    print(len(faces))
-    print(len(vertices))
     for face in range(len(faces)):
         c_face = faces[face]
         v_1 = int(c_face[0,0]) - 1
